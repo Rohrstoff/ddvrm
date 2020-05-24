@@ -34,6 +34,7 @@ public class MonsterTemplate extends Character {
     private int hitPointNrOfDice;
     private int hitPointNSidedDice;
     private int hitPointAddition;
+    private int experience;
 
     private String imagePath;
 
