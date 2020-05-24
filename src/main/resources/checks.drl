@@ -124,12 +124,16 @@ rule "Revival Succeeded"
         $a: PlayerAction( getAction() == Action.REVIVE )
         $avatar: Avatar( getAction() == Action.REVIVE, isRollSuccessful() )
         $room: Room() from Game.getCurrentRoom()
+        $stage: Stage()
     then
         System.out.println( "Revival Succeeded" );
         $room.addToDescription( "\n" + $avatar.getName() + " successfully revived " + $a.getTarget().getName() );
         $avatar.setAction( null );
         $a.getTarget().setCurrentHitPoints( $a.getTarget().getHitPoints() );
+        Game.removePlayerActionFromPartyMembers( $a );
+        new RoomScreen( $stage ).setStage();
         retract( $room )
+        retract( $stage )
 end
 
 rule "Revival Failed"
@@ -138,26 +142,16 @@ rule "Revival Failed"
         $a: PlayerAction( getAction() == Action.REVIVE )
         $avatar: Avatar( getAction() == Action.REVIVE, !isRollSuccessful() )
         $room: Room() from Game.getCurrentRoom()
+        $stage: Stage()
     then
         System.out.println( "Revival failed" );
         Game.removeFromParty( $a.getTarget() );
         $avatar.setAction( null );
         $room.addToDescription( "\n" + $avatar + " tries to revive " + $a.getTarget() + "..." );
         $room.addToDescription( "\n" + $a.getTarget() + " died!" );
+        Game.removePlayerActionFromPartyMembers( $a );
+        new RoomScreen( $stage ).setStage();
         retract( $room )
         retract( $a.getTarget() )
-end
-
-rule "Remove Revival Action From Avatar"
-    salience -25
-    when
-        $a: PlayerAction( getAction() == Action.REVIVE )
-        $stage: Stage()
-    then
-        Game.removePlayerActionFromPartyMembers( $a );
-        System.out.println( "Revive Action removed" );
-        new RoomScreen( $stage ).setStage();
-        System.out.println( "Stage set" );
         retract( $stage )
-        retract( $a )
 end

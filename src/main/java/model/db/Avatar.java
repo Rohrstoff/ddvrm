@@ -148,7 +148,7 @@ public class Avatar extends Character {
     {
         for( PlayerAction playerAction : playerActions )
         {
-            if( playerAction.getAction() == action.getAction() )
+            if( playerAction.getAction() == action.getAction() && playerAction.getTarget() == action.getTarget() )
             {
                 playerActions.remove( playerAction );
                 break;
