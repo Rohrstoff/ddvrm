@@ -1,0 +1,244 @@
+import model.db.Avatar
+import model.Room
+import model.Character
+import model.Monster
+import model.PlayerAction
+import model.db.Item
+import model.db.Spell
+import utils.Action
+import utils.Game
+import state.Play
+import actions.Attack
+import actions.Proceed
+
+import javafx.stage.Stage;
+
+import java.util.concurrent.ThreadLocalRandom
+import state.Combat
+import gui.RoomScreen
+import gui.CombatScreen
+
+dialect  "mvel"
+
+function int getModifier( int value, boolean isProficient )
+{
+    int returnValue = (int) Math.floor((value - 10) / 2);
+
+    if( isProficient )
+    {
+        returnValue += Avatar.PROFICIENCY_BONUS;
+    }
+
+    return returnValue;
+}
+
+function int rollDie( int maxValue )
+{
+    return ThreadLocalRandom.current().nextInt( 1, maxValue );
+}
+
+rule "Stealth Check"
+    salience 100
+    when
+        $action: PlayerAction( getAction() == Action.STEALTH )
+        $avatar: Avatar() from $action.getAvatar()
+        $roll: Number() from rollDie( 20 ) + getModifier( $avatar.getDexterity(), false )
+    then
+        $avatar.setRoll( $roll.intValue() );
+        $avatar.setAction( Action.STEALTH );
+        $avatar.setRollSuccessful( Game.rollSuccessful( $roll.intValue(), $action.getCheckAgainst() ) );
+        System.out.println( "Stealth (" + $avatar.toString() + "): " + $avatar.getRoll() );
+        update( $avatar );
+        retract( $action );
+end
+
+rule "Roll Initiative Player"
+    when
+        $avatar: Avatar( getAction() == Action.INITIATIVE )
+    then
+        $avatar.setRoll( rollDie( 20 ) + getModifier( $avatar.getDexterity(), false ) );
+        $avatar.setAction( null );
+        System.out.println( "Avatar Initiative: " + $avatar.getRoll() );
+end
+
+rule "Roll Initiative Monster"
+    when
+        $monster: Monster( getAction() == Action.INITIATIVE )
+    then
+        $monster.setRoll( rollDie( 20 ) + getModifier( $monster.getDexterity(), false ) );
+        $monster.setAction( null );
+        System.out.println( "Monster Initiative: " + $monster.getRoll() );
+end
+
+rule "Attack"
+    no-loop
+    when
+        $a: Attack()
+    then
+end
+
+rule "Itemattack" extends "Attack"
+    no-loop
+    when
+        eval( $a.getItem() != null )
+        $item: Item() from $a.getItem()
+    then
+     modify( $a ){
+         checkSuccess( rollDie( 20 ) + $item.getAtkBonus() )
+     };
+end
+
+rule "Spellattack" extends "Attack"
+    no-loop
+    when
+        eval( $a.getSpell() != null )
+        $spell: Spell() from $a.getSpell()
+    then
+     modify( $a ){
+         checkSuccess( rollDie( 20 ) + $spell.getAtkBonus() )
+     };
+end
+
+rule "Attack Successful Item"
+    no-loop
+    when
+        $a: Attack( $a.isSuccessful(), $a.getItem() != null )
+    then
+        $a.doDamage( rollDie( $a.getItem().getDmgNSidedDice() ) + $a.getItem().getDmgAddition() );
+        System.out.println( "Item hit " + $a.getTarget() );
+        retract( $a )
+end
+
+rule "Attack Successful Spell"
+    no-loop
+    when
+        $a: Attack( $a.isSuccessful(), $a.getSpell() != null )
+    then
+        $a.doDamage( rollDie( $a.getSpell().getDmgNSidedDice() ) + $a.getSpell().getDmgAddition() );
+        System.out.println( "Spell fired on " + $a.getTarget() );
+        retract( $a )
+end
+
+rule "Attack Failed"
+    when
+        $a: Attack( !$a.isSuccessful() )
+    then
+        System.out.println( "Sorry mate, you missed " + $a.getTarget() );
+        retract( $a )
+end
+
+rule "Proceed to next room with unconscious character"
+    salience 200
+    when
+        $a: Avatar()
+        eval( $a.getCurrentHitPoints() <= 0 )
+        $action: PlayerAction( getAction() == Action.CONTINUE )
+    then
+        System.out.println( "Removing from party: " + $a + "(" + $a.getCurrentHitPoints() + ")" );
+        //Game.removePlayerActionFromPartyMembers( new PlayerAction( null, Action.REVIVE ) );
+        Game.removeFromParty( $a );
+        retract( $a )
+end
+
+rule "Proceed to next room"
+    salience 100
+    when
+        $action: PlayerAction( getAction() == Action.CONTINUE )
+    then
+        Game.setCurrentRoomNo( $action.getNextRoom() );
+        Game.getCurrentRoom().setPartyEntering( true );
+        Game.getCurrentRoom().partyEntering();
+        Game.clearPlayerActions();
+        update( Game.getCurrentRoom() )
+        System.out.println( "Go to the next room " + $action.getNextRoom() );
+end
+
+rule "Initiate Combat"
+    salience 100
+    when
+        $action: PlayerAction( $action.getAction() == Action.COMBAT )
+    then
+        Combat.initiate( Game.getCurrentRoom().getMonsters() );
+        Combat.setPartyAdvantage( $action.hasCombatAdvantage() );
+end
+
+rule "Show Combat Screen"
+    salience -100
+    when
+        $action: PlayerAction( $action.getAction() == Action.COMBAT )
+        $stage: Stage()
+    then
+        new CombatScreen( $stage ).setStage();
+        retract( $stage );
+        retract( $action );
+        System.out.println( "Lets fetz!" );
+end
+
+rule "Back to Stirge Room"
+    salience 100
+    when
+        PlayerAction( getAction() == Action.BACK_TO_ROOM )
+        $room: Room( no == 1 )
+    then
+        $room.setDescription( "The Stirges lie dead on the floor" );
+        $room.setCleared( true );
+        $room.clearActions();
+        $room.addPartyAction( new PlayerAction( "Go to the next room", Action.CONTINUE, 2 ) );
+end
+
+rule "Back to Goblin Room"
+    salience 100
+    when
+        PlayerAction( getAction() == Action.BACK_TO_ROOM )
+        $room: Room( no == 2 )
+    then
+        $room.setDescription( "The fight with the Goblins made quite a mess out of this room." );
+        $room.setCleared( true );
+        $room.clearActions();
+        //$room.addPlayerAction( new PlayerAction( "Go to the next room", Action.CONTINUE, 1 ) );
+        $room.addPartyAction( new PlayerAction( "Go back to the Stirge Room", Action.CONTINUE, 1 ) );
+        $room.addPartyAction( new PlayerAction( "Rest for a while", Action.REST, 0, true ) );
+end
+
+rule "Is Character dead"
+    when
+        PlayerAction( getAction() == Action.BACK_TO_ROOM )
+        $a: Avatar( getCurrentHitPoints() <= 0 )
+        $avatar: Avatar( getCurrentHitPoints() > 0 )
+    then
+        $avatar.addPlayerAction( new PlayerAction( "Try to revive " + $a.getName(), Action.REVIVE, $a ) );
+end
+
+rule "Rest"
+    when
+        $a: PlayerAction( getAction() == Action.REST )
+        $avatar: Avatar( name == $a.getAvatar().getName() )
+    then
+        $avatar.setCurrentHitPoints( $avatar.getHitPoints() );
+end
+
+rule "Revive"
+    salience 100
+    when
+        $a: PlayerAction( getAction() == Action.REVIVE )
+        $avatar: Avatar() from $a.getAvatar()
+        $roll: Number() from rollDie( 20 ) + getModifier( $avatar.getWisdom(), false )
+    then
+        System.out.println( "Medicine check: " + $roll );
+        $avatar.setRoll( $roll.intValue() );
+        $avatar.setAction( Action.REVIVE );
+        $avatar.setRollSuccessful( Game.rollSuccessful( $roll.intValue(), 15 ) );
+        update( $avatar )
+end
+
+rule "Update JavaFX Stage"
+    salience -200
+    when
+        ($p: PlayerAction( getAction() == Action.CONTINUE ) or $p: PlayerAction( getAction() == Action.BACK_TO_ROOM ) or $p: PlayerAction( getAction() == Action.REST ))
+        $stage: Stage()
+    then
+        new RoomScreen( $stage ).setStage();
+        retract( $stage );
+        retract( $p )
+        retract( Game.getCurrentRoom() );
+end

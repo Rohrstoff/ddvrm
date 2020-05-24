@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <property name="dialect">org.hibernate.dialect.MySQL57Dialect</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/ddvrm?useLegacyDatetimeCode=false&amp;serverTimezone=UTC</property>
+        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="connection.username">
+            root
+        </property>
+        <property name="connection.password">
+            test05
+        </property>
+
+        <!-- DB schema -->
+        <mapping class="model.db.Avatar"/>
+        <mapping class="model.db.Race"/>
+        <mapping class="model.db.Class"/>
+        <mapping class="model.db.Spell"/>
+        <mapping class="model.db.Language"/>
+        <mapping class="model.db.MonsterTemplate"/>
+        <mapping class="model.db.Item"/>
+        <mapping class="model.db.ItemType"/>
+    </session-factory>
+</hibernate-configuration>

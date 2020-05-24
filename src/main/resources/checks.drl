@@ -1,0 +1,163 @@
+import model.Room
+import utils.Game
+
+import state.Combat
+import state.Init
+import state.PartyAction
+
+import model.PlayerAction
+
+import model.db.Avatar
+
+import utils.Action
+
+import javafx.stage.Stage
+import gui.RoomScreen;
+
+dialect  "mvel"
+
+rule "Stirge Room Stealth Check Failed"
+    salience 100
+    when
+        Avatar( getAction() == Action.STEALTH, !rollSuccessful )
+        $room: Room( no == 1, cleared == false, isPartyEntering() )
+    then
+        $room.addToDescription( "\n However, they do attack you." );
+        $room.clearActions();
+        $room.addPartyAction( new PlayerAction( "Get ready for combat!", Action.COMBAT ) );
+        $room.setPartyEntering( false );
+        System.out.println( "Stealth Check failed" );
+        update( $room )
+end
+
+rule "Stirge Room Stealth Check Succeeded"
+    salience 100
+    when
+        $a: Avatar( getAction() == Action.STEALTH, rollSuccessful )
+        $room: Room( no == 1, cleared == false, isPartyEntering() )
+    then
+        System.out.println( "Party entering" );
+        $room.clearActions();
+        $room.addPartyAction( new PlayerAction( "Sneak towards the next room", Action.STEALTH, 9, true ) );
+        $room.addPartyAction( new PlayerAction( "Move towards the next room", Action.COMBAT ) );
+        $a.setAction( null );
+end
+
+rule "Stirge Room Stealth Action Failed"
+    salience 90
+    when
+        $p: PartyAction()
+        $a: Avatar( getAction() == Action.STEALTH, !rollSuccessful )
+        $room: Room( no == 1, cleared == false, !isPartyEntering() )
+        $stage: Stage()
+    then
+        $room.addToDescription( "\nThe bats have noticed " + $a.toString() + " and are attacking your group!" );
+        $room.clearActions();
+        $room.addPartyAction( new PlayerAction( "Get ready for combat!", Action.COMBAT ) );
+        new RoomScreen( $stage ).setStage();
+        $a.setAction( null );
+        retract( $stage )
+        retract( $p )
+        retract( $room )
+end
+
+rule "Stirge Room Stealth Action Succeeded"
+    salience 90
+    when
+        $p: PartyAction()
+        $a: Avatar( getAction() == Action.STEALTH, rollSuccessful )
+        $room: Room( no == 1, cleared == false, !isPartyEntering() )
+        $stage: Stage()
+    then
+        $a.setAction( null );
+        $room.clearActions();
+        $room.addPartyAction( new PlayerAction( "Enter next room", Action.CONTINUE, 2 ) );
+        $room.addPartyAction( new PlayerAction( "Attack the bats", Action.COMBAT, true ) );
+        new RoomScreen( $stage ).setStage();
+        $a.setAction( null );
+        retract( $stage )
+        retract( $p )
+        retract( $room )
+end
+
+rule "Goblin Room Stealth Action Failed"
+    when
+        $p: PartyAction()
+        $a: Avatar( getAction() == Action.STEALTH, !rollSuccessful )
+        $room: Room( no == 2, cleared == false, !isPartyEntering() )
+        $stage: Stage()
+    then
+        System.out.println( "Goblin Sneak failed" );
+        $room.addToDescription( "\nThe goblins saw " + $a.toString() + " sneaking behind them and do not seem too happy about it!" );
+        $room.clearActions();
+        $room.addPartyAction( new PlayerAction( "CHARGE!!!", Action.COMBAT ) );
+        new RoomScreen( $stage ).setStage();
+        $a.setAction( null );
+        retract( $stage )
+        retract( $p )
+        retract( $room )
+end
+
+rule "Goblin Room Stealth Action Succeeded"
+    when
+        $p: PartyAction()
+        $a: Avatar( getAction() == Action.STEALTH, rollSuccessful )
+        $room: Room( no == 2, cleared == false, !isPartyEntering() )
+        $stage: Stage()
+    then
+        System.out.println( "Goblin Sneak successful" );
+        $a.setAction( null );
+        $room.addToDescription( "\nThe goblins didn't notice you." );
+        $room.clearActions();
+        $room.addPartyAction( new PlayerAction( "Surprise them!", Action.COMBAT, true ) );
+        Combat.setPartyAdvantage( true );
+        new RoomScreen( $stage ).setStage();
+        $a.setAction( null );
+        retract( $stage )
+        retract( $p )
+        retract( $room )
+end
+
+rule "Revival Succeeded"
+    salience 50
+    when
+        $a: PlayerAction( getAction() == Action.REVIVE )
+        $avatar: Avatar( getAction() == Action.REVIVE, isRollSuccessful() )
+        $room: Room() from Game.getCurrentRoom()
+    then
+        System.out.println( "Revival Succeeded" );
+        $room.addToDescription( "\n" + $avatar.getName() + " successfully revived " + $a.getTarget().getName() );
+        $avatar.setAction( null );
+        $a.getTarget().setCurrentHitPoints( $a.getTarget().getHitPoints() );
+        retract( $room )
+end
+
+rule "Revival Failed"
+    salience 50
+    when
+        $a: PlayerAction( getAction() == Action.REVIVE )
+        $avatar: Avatar( getAction() == Action.REVIVE, !isRollSuccessful() )
+        $room: Room() from Game.getCurrentRoom()
+    then
+        System.out.println( "Revival failed" );
+        Game.removeFromParty( $a.getTarget() );
+        $avatar.setAction( null );
+        $room.addToDescription( "\n" + $avatar + " tries to revive " + $a.getTarget() + "..." );
+        $room.addToDescription( "\n" + $a.getTarget() + " died!" );
+        retract( $room )
+        retract( $a.getTarget() )
+end
+
+rule "Remove Revival Action From Avatar"
+    salience -25
+    when
+        $a: PlayerAction( getAction() == Action.REVIVE )
+        $stage: Stage()
+    then
+        Game.removePlayerActionFromPartyMembers( $a );
+        System.out.println( "Revive Action removed" );
+        new RoomScreen( $stage ).setStage();
+        System.out.println( "Stage set" );
+        retract( $stage )
+        retract( $a )
+end

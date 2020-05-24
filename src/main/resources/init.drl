@@ -1,0 +1,78 @@
+import model.Room
+import model.db.MonsterTemplate
+import model.db.Avatar
+import utils.Action;
+import state.Init;
+import state.Play
+import utils.Game
+import model.PlayerAction;
+
+
+dialect  "mvel"
+
+
+rule "Intro"
+    salience 100
+    when
+        Init()
+        $room: Room( no == 0 )
+    then
+        $room.setDescription("You’re an adventurer. Or maybe you’re even a group of adventurers. Whatever.\n" +
+                           "Why are you here? No one cares. Don’t tell me your backstory. We’re here to kick ass and find treasure. That’s your motivation. Now get ready to roll!\n" +
+                           "In front of you is a dark staircase. Its mysterious shadows beckon you to enter. \n" +
+                           "And by “beckon,” I mean you need to go down the stairs, or there’s not a hell of a lot of purpose for us all sitting around this table, is there?");
+        $room.addNextRoom(1);
+        $room.addPartyAction( new PlayerAction( "Descend the stairs...", Action.CONTINUE, 1 ) );
+end
+
+rule "Init Avatar"
+    when
+        Init()
+        $avatar: Avatar()
+    then
+        $avatar.setCurrentHitPoints( $avatar.getHitPoints() );
+end
+
+rule "Init Stirge Room"
+    salience 100
+    when
+        Init()
+        $room: Room( no == 1 )
+        $monster: MonsterTemplate( race == 'Stirge' )
+        $noOfCharacters: Number() from accumulate( $a: Avatar(), count( $a ) )
+    then
+        $room.setDescription("This room is dark and smells like a pet store.\n" +
+                       "It’s all wood chips and warm poop down here.\n" +
+                       "A bunch of bats flap around the room. They look harmless.");
+        $room.addMonster( $monster, $noOfCharacters.intValue() );
+        $room.setActionUponEntering( Action.STEALTH );
+        $room.setCheckAgainstForEnterAction( 9 );  //Stirge Passive Perception
+        $room.addNextRoom(2);
+        retract( $room )
+end
+
+rule "Init Goblin Room"
+    salience 100
+    when
+        Init()
+        $room: Room( no == 2 )
+        $monster: MonsterTemplate( race == 'Goblin' )
+    then
+        $room.setDescription("This room features a small wooden table and a couple of stools." +
+                             "\nTwo goblins hang out here, looking pretty bored." +
+                             "\nMaybe they’d be less bored if they got into a life-or-death struggle with a few adventurers? Just a thought.");
+        $room.addMonster( $monster, 2 );
+        $room.addPartyAction( new PlayerAction( "Charge the Goblins!", Action.COMBAT, 0 ) );
+        $room.addPartyAction( new PlayerAction( "Sneak towards the Goblins!", Action.STEALTH, 9, true ) );
+        retract( $room )
+end
+
+rule "Initialisation Complete"
+    salience -100
+    when
+        $init: Init()
+        $monster: MonsterTemplate()
+    then
+        retract( $init )
+        retract( $monster )
+end
