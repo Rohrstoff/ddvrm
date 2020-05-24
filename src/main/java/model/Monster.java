@@ -1,6 +1,7 @@
 package model;
 
 import model.db.Item;
+import model.db.Language;
 import model.db.MonsterTemplate;
 import model.db.Spell;
 
@@ -10,10 +11,10 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Monster extends Character {
 
     private String race;
-    private String name;
     private int hitPoints;
     private List<Spell> spells;
     private List<Item> items;
+    private Language language;
 
     public Monster(MonsterTemplate template)
     {
@@ -22,6 +23,7 @@ public class Monster extends Character {
         calculateHitPoints( template.getHitPointNrOfDice(), template.getHitPointNSidedDice(), template.getHitPointAddition() );
         this.spells = template.getSpells();
         this.items = template.getItems();
+        this.language = template.getLanguage();
     }
 
     private void calculateHitPoints( int nrOfDice, int nSidedDice, int addition )
@@ -44,6 +46,10 @@ public class Monster extends Character {
 
     public List<Item> getItems() {
         return items;
+    }
+
+    public Language getLanguage() {
+        return language;
     }
 
     @Override

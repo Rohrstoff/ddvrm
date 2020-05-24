@@ -62,6 +62,8 @@ rule "Init Goblin Room"
                              "\nTwo goblins hang out here, looking pretty bored." +
                              "\nMaybe they’d be less bored if they got into a life-or-death struggle with a few adventurers? Just a thought.");
         $room.addMonster( $monster, 2 );
+        $room.setActionUponEntering( Action.PERCEPTION );
+        $room.setCheckAgainstForEnterAction( 12 );
         $room.addPartyAction( new PlayerAction( "Charge the Goblins!", Action.COMBAT, 0 ) );
         $room.addPartyAction( new PlayerAction( "Sneak towards the Goblins!", Action.STEALTH, 9, true ) );
         retract( $room )

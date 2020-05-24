@@ -152,7 +152,10 @@ public class Room {
 
     public void addToDescription( String addition )
     {
-        this.description += addition;
+        if( !description.contains( addition ) )
+        {
+            this.description += addition;
+        }
     }
 
     public void clearActions()

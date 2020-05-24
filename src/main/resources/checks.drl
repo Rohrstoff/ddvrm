@@ -155,3 +155,23 @@ rule "Revival Failed"
         retract( $a.getTarget() )
         retract( $stage )
 end
+
+rule "Goblin Room Perception Check Succeeded"
+    salience 100
+    when
+        $a: Avatar( getAction() == Action.PERCEPTION, rollSuccessful )
+        $room: Room( no == 2, cleared == false, isPartyEntering() )
+    then
+        $room.addToDescription( "\n Two Goblins are talking in their native language" );
+        $room.setPartyEntering( false );
+        System.out.println( "Perception Check (Room 2) Succeeded" );
+end
+
+rule "Goblin Room Perception understand" extends "Goblin Room Perception Check Succeeded"
+    when
+        eval( $a.speaksLanguageOfAMonsterInRoom( $room ) )
+    then
+        $room.addToDescription( "\n " + $a + " explains, that they are talking about their useless friend Jerry." );
+        System.out.println( "Goblins understood" );
+        update( $room )
+end

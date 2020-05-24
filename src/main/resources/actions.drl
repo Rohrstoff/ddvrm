@@ -37,7 +37,7 @@ function int rollDie( int maxValue )
     return ThreadLocalRandom.current().nextInt( 1, maxValue );
 }
 
-rule "Stealth Check"
+rule "Stealth Roll"
     salience 100
     when
         $action: PlayerAction( getAction() == Action.STEALTH )
@@ -48,6 +48,21 @@ rule "Stealth Check"
         $avatar.setAction( Action.STEALTH );
         $avatar.setRollSuccessful( Game.rollSuccessful( $roll.intValue(), $action.getCheckAgainst() ) );
         System.out.println( "Stealth (" + $avatar.toString() + "): " + $avatar.getRoll() );
+        update( $avatar );
+        retract( $action );
+end
+
+rule "Perception Roll"
+    salience 100
+    when
+        $action: PlayerAction( getAction() == Action.PERCEPTION )
+        $avatar: Avatar() from $action.getAvatar()
+        $roll: Number() from rollDie( 20 ) + getModifier( $avatar.getWisdom(), false )
+    then
+        $avatar.setRoll( $roll.intValue() );
+        $avatar.setAction( Action.PERCEPTION );
+        $avatar.setRollSuccessful( Game.rollSuccessful( $roll.intValue(), $action.getCheckAgainst() ) );
+        System.out.println( "Perception (" + $avatar.toString() + "): " + $avatar.getRoll() );
         update( $avatar );
         retract( $action );
 end
@@ -145,7 +160,6 @@ rule "Proceed to next room with unconscious character"
         $action: PlayerAction( getAction() == Action.CONTINUE )
     then
         System.out.println( "Removing from party: " + $a + "(" + $a.getCurrentHitPoints() + ")" );
-        //Game.removePlayerActionFromPartyMembers( new PlayerAction( null, Action.REVIVE ) );
         Game.removeFromParty( $a );
         retract( $a )
 end

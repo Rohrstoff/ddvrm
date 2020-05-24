@@ -1,7 +1,9 @@
 package model.db;
 
 import model.Character;
+import model.Monster;
 import model.PlayerAction;
+import model.Room;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -154,6 +156,21 @@ public class Avatar extends Character {
                 break;
             }
         }
+    }
+
+    public boolean speaksLanguageOfAMonsterInRoom( Room room )
+    {
+        for( Monster monster : room.getMonsters() )
+        {
+            for( Language lang : languages )
+            {
+                if( lang.getId() == monster.getLanguage().getId() )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

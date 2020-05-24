@@ -8,4 +8,5 @@ public enum Action {
     BACK_TO_ROOM,
     REST,
     REVIVE,
+    PERCEPTION,
 }
