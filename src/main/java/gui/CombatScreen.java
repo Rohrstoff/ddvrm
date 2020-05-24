@@ -35,7 +35,6 @@ import java.util.Random;
 public class CombatScreen {
 
     private Stage stage;
-    ScrollPane scrollPane;
     private VBox combatLog = new VBox();
     private VBox rhsBox = new VBox();
     private ListView<Character> orderOfCombat = new ListView<>();
@@ -75,14 +74,11 @@ public class CombatScreen {
         Character currentCombatant = orderOfCombat.getSelectionModel().getSelectedItems().get(0);
 
         //VBox on RHS
-        scrollPane = new ScrollPane();
-        scrollPane.setFitToWidth( true );
-        scrollPane.setContent( orderOfCombat );
-        rhsBox.getChildren().add( scrollPane );
+        rhsBox.getChildren().add( orderOfCombat );
         GUIElements.getPlayerTable( rhsBox, stage, true );
 
         //combat log
-        Pane centralPane = new Pane();
+        ScrollPane centralPane = new ScrollPane();
         centralPane.setBackground( new Background( new BackgroundFill( Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY ) ) );
 
         Text txt = new Text();
@@ -90,7 +86,7 @@ public class CombatScreen {
         txt.setFont(Font.font("Gothic MS", FontWeight.SEMI_BOLD, 15));
         combatLog.getChildren().add( txt );
 
-        centralPane.getChildren().add( combatLog );
+        centralPane.setContent( combatLog );
 
         root.getChildren().clear();
         root.add( centralPane, 0,0, 6, 2 );
@@ -166,7 +162,7 @@ public class CombatScreen {
     private void finishTurn()
     {
         rhsBox.getChildren().clear();
-        rhsBox.getChildren().add( scrollPane );
+        rhsBox.getChildren().add( orderOfCombat );
         GUIElements.getPlayerTable( rhsBox, stage, true );
 
         if( Combat.isOver() && Game.isOver() )

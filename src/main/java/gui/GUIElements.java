@@ -49,6 +49,8 @@ public class GUIElements {
         avatarTable.minHeightProperty().bind(avatarTable.prefHeightProperty());
         avatarTable.maxHeightProperty().bind(avatarTable.prefHeightProperty());
 
+        vBox.getChildren().add( avatarTable );
+
         if( !combatScreen )
         {
             avatarTable.getSelectionModel().select( 0 );
@@ -70,7 +72,6 @@ public class GUIElements {
             avatarTable.setSelectionModel(null);
         }
 
-        vBox.getChildren().add( avatarTable );
     }
 
     private static void getPlayerActions( Avatar avatar, VBox vBox2, Stage stage )
@@ -80,7 +81,7 @@ public class GUIElements {
         if( avatar.getPlayerActions().size() > 0 )
         {
             Text txtPlayerActions = new Text();
-            txtPlayerActions.setText( "Player Actions" );
+            txtPlayerActions.setText( "Actions for " + avatar );
             txtPlayerActions.setTextAlignment( TextAlignment.CENTER );
             txtPlayerActions.setFont(Font.font("Gothic MS", FontWeight.BOLD, 14));
 
