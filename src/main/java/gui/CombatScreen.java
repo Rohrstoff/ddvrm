@@ -124,32 +124,40 @@ public class CombatScreen {
                     txt.setText("Attack " + target.toString() + " with " + item.getName());
                     combatLog.getChildren().add( txt );
 
-                    Attack attack = new Attack( item, target );
+                    Attack attack = new Attack( item, target, avatar );
                     Drools.getWorkingMemory().insert( attack );
                     Drools.getWorkingMemory().fireAllRules();
 
-                    Text dmgTxt = new Text();
-                    if( attack.isSuccessful() )
+                    afterAttack( attack );
+                });
+
+                returnValue.add( btn );
+            }
+
+            for(Spell spell : avatar.getSpells())
+            {
+                Button btn = new Button();
+                btn.setText( "Use " + spell.getName() );
+                btn.setOnAction( e -> {
+                    Character target = orderOfCombat.getSelectionModel().getSelectedItems().get(0);
+                    Text txt = new Text();
+                    if( spell.isHeal() )
                     {
-                        dmgTxt.setText( target.toString() + " takes " + attack.getDamage() + " damage!" );
+                        txt.setText( avatar + " uses " + spell.getName() );
                     }
                     else
                     {
-                        dmgTxt.setText( avatar.getName() + " misses!" );
+                        txt.setText("Attack " + target.toString() + " with " + spell.getName());
                     }
 
-                    combatLog.getChildren().add( dmgTxt );
 
-                    if( target.isDead() )
-                    {
-                        Text deathText = new Text();
-                        deathText.setText( target + " is dead!" );
-                        combatLog.getChildren().add( deathText );
-                        setAttackingCharacterIndex( target );
-                    }
+                    combatLog.getChildren().add( txt );
 
-                    finishTurn();
+                    Attack attack = new Attack( spell, target, avatar );
+                    Drools.getWorkingMemory().insert( attack );
+                    Drools.getWorkingMemory().fireAllRules();
 
+                    afterAttack( attack );
                 });
 
                 returnValue.add( btn );
@@ -157,6 +165,38 @@ public class CombatScreen {
         }
 
         return returnValue;
+    }
+
+    private void afterAttack( Attack attack )
+    {
+        Text dmgTxt = new Text();
+        Character target = attack.getTarget();
+        Character avatar = attack.getAttacker();
+
+        if( attack.isSuccessful() )
+        {
+            dmgTxt.setText( target.toString() + " takes " + attack.getDamage() + " damage!" );
+        }
+        else if( attack.isHeal() )
+        {
+            dmgTxt.setText( target.toString() + " heals " + attack.getDamage() + " hit points!" );
+        }
+        else
+        {
+            dmgTxt.setText( ((Avatar) avatar).getName() + " misses!" );
+        }
+
+        combatLog.getChildren().add( dmgTxt );
+
+        if( target.isDead() )
+        {
+            Text deathText = new Text();
+            deathText.setText( target + " is dead!" );
+            combatLog.getChildren().add( deathText );
+            setAttackingCharacterIndex( target );
+        }
+
+        finishTurn();
     }
 
     private void finishTurn()
@@ -279,13 +319,13 @@ public class CombatScreen {
         {
             Spell spell = monster.getSpells().get(0);
             txt.setText("Attack " + target.toString() + " with " + spell.getName());
-            attack = new Attack( spell, target );
+            attack = new Attack( spell, target, monster );
         }
         else
         {
             Item item = monster.getItems().get( 0 );
             txt.setText("Attack " + target.toString() + " with " + item.getName());
-            attack = new Attack( item, target );
+            attack = new Attack( item, target, monster );
         }
 
         combatLog.getChildren().add( txt );

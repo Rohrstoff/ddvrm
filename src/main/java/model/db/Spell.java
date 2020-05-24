@@ -14,6 +14,8 @@ public class Spell {
     private int dmgNrOfDice;
     private int dmgNSidedDice;
     private int dmgAddition;
+    private boolean heal;
+    private boolean targetSelf;
 
     @ManyToMany( mappedBy = "spells")
     private List<Avatar> avatarList;
@@ -58,5 +60,13 @@ public class Spell {
 
     public int getDmgAddition() {
         return dmgAddition;
+    }
+
+    public boolean isHeal() {
+        return heal;
+    }
+
+    public boolean isTargetSelf() {
+        return targetSelf;
     }
 }

@@ -92,11 +92,21 @@ rule "Spellattack" extends "Attack"
     no-loop
     when
         eval( $a.getSpell() != null )
-        $spell: Spell() from $a.getSpell()
+        $spell: Spell( !heal ) from $a.getSpell()
     then
      modify( $a ){
          checkSuccess( rollDie( 20 ) + $spell.getAtkBonus() )
      };
+end
+
+rule "Heal spell cast" extends "Attack"
+    no-loop
+    when
+        eval( $a.getSpell() != null )
+        $spell: Spell( heal ) from $a.getSpell()
+    then
+        $amount = rollDie( $spell.getDmgNSidedDice() ) + $spell.getDmgAddition();
+        $a.heal( $amount );
 end
 
 rule "Attack Successful Item"
