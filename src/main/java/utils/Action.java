@@ -9,4 +9,5 @@ public enum Action {
     REST,
     REVIVE,
     PERCEPTION,
+    APPROACH
 }

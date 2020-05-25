@@ -175,3 +175,26 @@ rule "Goblin Room Perception understand" extends "Goblin Room Perception Check S
         System.out.println( "Goblins understood" );
         update( $room )
 end
+
+rule "Statue Room Perception Check Succeeded"
+    when
+        $a: Avatar( getAction() == Action.PERCEPTION, rollSuccessful )
+        $room: Room( no == 3, !cleared, !isPartyEntering() )
+    then
+        System.out.println( "Perception on statue successful (" + $a + ")" );
+        $room.addToDescription( "\n\n" + $a + " discovers a hidden compartment in this statue that holds a scrap of paper.\n" +
+                                "The paper contains the following note:" );
+        $room.addToDescription( "\n\n QUIT WASTING TIME! PICK A DOOR AND GO! FLIP A COIN IF YOU HAVE TO—JUST PICK A DIRECTION!\n" +
+                                "IT’S NOT ROCKET SCIENCE! WHAT ARE YOU GOING TO DO, SPEND THE WHOLE NIGHT STANDING IN HERE WITH A STATUE?\n" +
+                                 "YOU NEED TO PICK A DOOR AND GOOOO! THIS IS, LIKE, THE THIRD F***ING ROOM, WE DON’T HAVE ALL DAY!" );
+        $room.setCleared( true );
+end
+
+rule "Statue Room Perception Check Failed"
+    when
+        $a: Avatar( getAction() == Action.PERCEPTION, !rollSuccessful )
+        $room: Room( no == 3, !cleared, !isPartyEntering() )
+    then
+        System.out.println( "Perception on statue failed (" + $a + ")" );
+        $room.addToDescription( "\n\n It is a statue of a woman in armor!" );
+end

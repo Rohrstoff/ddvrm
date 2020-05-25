@@ -66,8 +66,25 @@ rule "Init Goblin Room"
         $room.setCheckAgainstForEnterAction( 12 );
         $room.addPartyAction( new PlayerAction( "Charge the Goblins!", Action.COMBAT, 0 ) );
         $room.addPartyAction( new PlayerAction( "Sneak towards the Goblins!", Action.STEALTH, 9, true ) );
+        $room.addNextRoom( 3 );
         retract( $room )
 end
+
+rule "Init Statue Room"
+    salience 100
+    when
+        Init()
+        $room: Room( no == 3 )
+    then
+        $room.setDescription("This room is sort of trapezoidal, with doors to the east, north, and south.\n" +
+                             "It’s also got statues kind of scattered around—mostly statues of Rick with inscriptions like “WOW!” and “DAMN!”\n" +
+                             "One of the statues depicts a woman in armor—really fine crafting, real interesting.\n" +
+                              "Seems like a great artist worked hard on this one.");
+
+        $room.addPartyAction( new PlayerAction( "Go back to the previous Room", Action.CONTINUE, 2 ) );
+        retract( $room )
+end
+
 
 rule "Initialisation Complete"
     salience -100

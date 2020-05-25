@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class Game {
 
-    private static final int TOTAL_ROOMS = 2;
+    private static final int TOTAL_ROOMS = 3;
     private static int currentRoomNo = 0;
 
     private static List<Avatar> party = new ArrayList<>();

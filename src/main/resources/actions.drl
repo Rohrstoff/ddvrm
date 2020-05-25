@@ -177,6 +177,38 @@ rule "Proceed to next room"
         System.out.println( "Go to the next room " + $action.getNextRoom() );
 end
 
+rule "Set Actions for Statue Room" extends "Proceed to next room"
+    when
+        $room: Room( no == 3, !cleared )
+        $avatar: Avatar()
+    then
+        System.out.println( "Add avatar Actions " + $avatar );
+        $avatar.addPlayerAction( new PlayerAction( "Approach a Rick Statue", Action.APPROACH ) );
+        $avatar.addPlayerAction( new PlayerAction( "Approach the Woman Statue", Action.APPROACH ) );
+end
+
+rule "Approach Rick Statue in Statue Room"
+    when
+        $a: PlayerAction( title == "Approach a Rick Statue", getAction() == Action.APPROACH )
+        $room: Room() from Game.getCurrentRoom()
+    then
+        System.out.println( "Rick Statue approached " + $a.getAvatar() + " Room: " + $room.getNo() );
+        $room.addToDescription( "\n\nThe statue represents Rick with a Portal Gun in his hands!" );
+end
+
+rule "Approach Woman Statue in Statue Room"
+    when
+        $a: PlayerAction( title == "Approach the Woman Statue", getAction() == Action.APPROACH )
+        $room: Room() from Game.getCurrentRoom()
+    then
+        System.out.println( "Woman Statue approached " + $a.getAvatar() + " Room: " + $room.getNo() );
+        $room.addToDescription( "\n\nAt the base of the statue, a plaque reads:\n" +
+                                "“DON’T WORRY. I’M NOT A REAL PERSON TURNED TO STONE. I’M JUST A COOL-LOOKING STATUE PUT HERE TO INTRIGUE YOU.”\n" +
+                                 "It’s probably nothing. You should pick a door, let’s get a move on!" );
+        $a.getAvatar().removePlayerAction( $a );
+        $a.getAvatar().addPlayerAction( new PlayerAction( "Further inspect the statue", Action.PERCEPTION, 12, true ) );
+end
+
 rule "Initiate Combat"
     salience 100
     when
@@ -219,7 +251,7 @@ rule "Back to Goblin Room"
         $room.setDescription( "The fight with the Goblins made quite a mess out of this room." );
         $room.setCleared( true );
         $room.clearActions();
-        //$room.addPlayerAction( new PlayerAction( "Go to the next room", Action.CONTINUE, 1 ) );
+        $room.addPartyAction( new PlayerAction( "Go to the next room", Action.CONTINUE, 3 ) );
         $room.addPartyAction( new PlayerAction( "Go back to the Stirge Room", Action.CONTINUE, 1 ) );
         $room.addPartyAction( new PlayerAction( "Rest for a while", Action.REST, 0, true ) );
 end
@@ -258,7 +290,7 @@ end
 rule "Update JavaFX Stage"
     salience -200
     when
-        ($p: PlayerAction( getAction() == Action.CONTINUE ) or $p: PlayerAction( getAction() == Action.BACK_TO_ROOM ) or $p: PlayerAction( getAction() == Action.REST ))
+        ($p: PlayerAction( getAction() == Action.CONTINUE ) or $p: PlayerAction( getAction() == Action.BACK_TO_ROOM ) or $p: PlayerAction( getAction() == Action.REST ) or $p: PlayerAction( getAction() == Action.APPROACH ))
         $stage: Stage()
     then
         new RoomScreen( $stage ).setStage();
