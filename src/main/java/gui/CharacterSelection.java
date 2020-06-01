@@ -102,22 +102,18 @@ public class CharacterSelection {
                 VBox avatarPanel = new VBox(name, raceAndClass, imageView);
                 avatarPanel.setAlignment( Pos.CENTER );
 
-                avatarPanel.setOnMouseClicked( event -> {
-                    if( !Game.isInParty( avatar ) ) {
-                        Game.addToParty( avatar );
-                    } else {
-                        Game.removeFromParty( avatar );
-                    }
-                });
-
                 Background focusBackground = new Background( new BackgroundFill( Color.YELLOWGREEN, CornerRadii.EMPTY, Insets.EMPTY ) );
                 Background unfocusBackground = new Background( new BackgroundFill( Color.web("#f4f4f4", 1.0), CornerRadii.EMPTY, Insets.EMPTY ) );
 
-                avatarPanel.backgroundProperty().bind( Bindings
-                        .when( avatarPanel.hoverProperty() )
-                        .then( focusBackground )
-                        .otherwise( unfocusBackground )
-                );
+                avatarPanel.setOnMouseClicked( event -> {
+                    if( !Game.isInParty( avatar ) ) {
+                        Game.addToParty( avatar );
+                        avatarPanel.setBackground( focusBackground );
+                    } else {
+                        Game.removeFromParty( avatar );
+                        avatarPanel.setBackground( unfocusBackground );
+                    }
+                });
 
                 returnValue.add( avatarPanel );
             } catch( Exception e) {
