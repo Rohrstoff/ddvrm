@@ -9,7 +9,6 @@ import utils.Action
 import utils.Game
 import state.Play
 import actions.Attack
-import actions.Proceed
 
 import javafx.stage.Stage;
 
@@ -194,6 +193,7 @@ rule "Approach Rick Statue in Statue Room"
     then
         System.out.println( "Rick Statue approached " + $a.getAvatar() + " Room: " + $room.getNo() );
         $room.addToDescription( "\n\nThe statue represents Rick with a Portal Gun in his hands!" );
+        $room.removePlayerAction( $a );
 end
 
 rule "Approach Woman Statue in Statue Room"
@@ -205,7 +205,8 @@ rule "Approach Woman Statue in Statue Room"
         $room.addToDescription( "\n\nAt the base of the statue, a plaque reads:\n" +
                                 "“DON’T WORRY. I’M NOT A REAL PERSON TURNED TO STONE. I’M JUST A COOL-LOOKING STATUE PUT HERE TO INTRIGUE YOU.”\n" +
                                  "It’s probably nothing. You should pick a door, let’s get a move on!" );
-        $a.getAvatar().removePlayerAction( $a );
+        $room.removePlayerAction( $a );
+        $a.getAvatar().clearPlayerActions();
         $a.getAvatar().addPlayerAction( new PlayerAction( "Further inspect the statue", Action.PERCEPTION, 12, true ) );
 end
 

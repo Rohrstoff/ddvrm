@@ -115,24 +115,17 @@ public class Room {
         Drools.getWorkingMemory().insert( this );
     }
 
-    public void addPlayerAction( PlayerAction action )
-    {
-        playerActionsList.add( action );
-    }
-
     public void addPartyAction( PlayerAction action )
     {
         partyActionsList.add( action );
     }
 
-    public List<PlayerAction> getPlayerActions()
-    {
-        return playerActionsList;
-    }
-
     public void removePlayerAction( PlayerAction action )
     {
-        playerActionsList.remove( action );
+        for( Avatar avatar : Game.getParty() )
+        {
+            avatar.removePlayerAction( action );
+        }
     }
 
     public void removePartyAction( PlayerAction action )
@@ -144,7 +137,6 @@ public class Room {
         return partyActionsList;
     }
 
-    //needed in drools
     public boolean isActionSuccessful()
     {
         return actionSuccessful;
