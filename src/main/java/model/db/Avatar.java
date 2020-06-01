@@ -89,10 +89,6 @@ public class Avatar extends Character {
         return hitPoints;
     }
 
-    public void setHitPoints(int hitPoints) {
-        this.hitPoints = hitPoints;
-    }
-
     public String getPersonalityTrait() {
         return personalityTrait;
     }
@@ -111,10 +107,6 @@ public class Avatar extends Character {
 
     public List<Spell> getSpells() {
         return spells;
-    }
-
-    public void setSpells(List<Spell> spells) {
-        this.spells = spells;
     }
 
     public List<Spell> getPreparedSpells() {

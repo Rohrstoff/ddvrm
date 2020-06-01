@@ -19,15 +19,11 @@ public class Character {
     @Transient
     private Action action;
     @Transient
-    private int checkAgainst;
-    @Transient
     private int roll;
     @Transient
     private boolean rollSuccessful;
     @Transient
     private int currentHitPoints;
-    @Transient
-    private boolean dead = false;
 
     public int getStrength() {
         return strength;
@@ -111,14 +107,6 @@ public class Character {
 
     public boolean isDead() {
         return currentHitPoints <= 0;
-    }
-
-    public int getCheckAgainst() {
-        return checkAgainst;
-    }
-
-    public void setCheckAgainst(int checkAgainst) {
-        this.checkAgainst = checkAgainst;
     }
 
     public boolean isRollSuccessful() {

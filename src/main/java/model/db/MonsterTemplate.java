@@ -38,28 +38,12 @@ public class MonsterTemplate extends Character {
 
     private String imagePath;
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public Language getLanguage() {
         return language;
     }
 
-    public void setLanguage(Language language) {
-        this.language = language;
-    }
-
     public String getRace() {
         return race;
-    }
-
-    public void setRace(String race) {
-        this.race = race;
     }
 
     public String getName() {
@@ -68,10 +52,6 @@ public class MonsterTemplate extends Character {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getImagePath() {
-        return imagePath;
     }
 
     public int getHitPointNrOfDice() {

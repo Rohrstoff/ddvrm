@@ -227,7 +227,7 @@ rule "Show Combat Screen"
         new CombatScreen( $stage ).setStage();
         retract( $stage );
         retract( $action );
-        System.out.println( "Lets fetz!" );
+        System.out.println( "Fight" );
 end
 
 rule "Back to Stirge Room"

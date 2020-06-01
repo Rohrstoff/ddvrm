@@ -1,10 +1,6 @@
 package gui;
 
 import actions.Attack;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,12 +10,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import model.Character;
 import model.Monster;
 import model.PlayerAction;
-import model.Room;
 import model.db.Avatar;
 import model.db.Item;
 import model.db.Spell;
@@ -40,7 +34,6 @@ public class CombatScreen {
     private ListView<Character> orderOfCombat = new ListView<>();
 
     private int attackingCharacter = 0;
-
 
     public CombatScreen(Stage stage)
     {
@@ -224,8 +217,7 @@ public class CombatScreen {
         else if( Combat.isOver() )
         {
             Text txt = new Text();
-            txt.setText( "Combat over!\n" +
-                        "You gain Experience"); //TODO implement XP and check for lvl up
+            txt.setText( "Combat over!");
             txt.setFont(Font.font("Gothic MS", FontWeight.SEMI_BOLD, 15));
             combatLog.getChildren().add( txt );
 

@@ -85,7 +85,6 @@ rule "Init Statue Room"
         retract( $room )
 end
 
-
 rule "Initialisation Complete"
     salience -100
     when
