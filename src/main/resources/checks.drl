@@ -179,6 +179,7 @@ rule "Goblin Room Perception understand" extends "Goblin Room Perception Check S
 end
 
 rule "Statue Room Perception Check Succeeded"
+    salience 100
     when
         $a: Avatar( getAction() == Action.PERCEPTION, rollSuccessful )
         $room: Room( no == 3, !cleared, !isPartyEntering() )
@@ -194,6 +195,7 @@ rule "Statue Room Perception Check Succeeded"
 end
 
 rule "Statue Room Perception Check Failed"
+    salience 100
     when
         $a: Avatar( getAction() == Action.PERCEPTION, !rollSuccessful )
         $room: Room( no == 3, !cleared, !isPartyEntering() )
