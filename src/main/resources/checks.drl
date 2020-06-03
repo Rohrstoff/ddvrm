@@ -133,6 +133,7 @@ rule "Revival Succeeded"
         Game.removePlayerActionFromPartyMembers( $a );
         new RoomScreen( $stage ).setStage();
         retract( $room )
+        retract( $a );
         retract( $stage )
 end
 
@@ -153,6 +154,7 @@ rule "Revival Failed"
         new RoomScreen( $stage ).setStage();
         retract( $room )
         retract( $a.getTarget() )
+        retract( $a );
         retract( $stage )
 end
 
